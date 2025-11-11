@@ -1,13 +1,18 @@
 package cv.portofolio.service;
 
+import org.springframework.stereotype.Component;
+
 import java.util.List;
 import java.util.stream.IntStream;
-
+@Component
 public class GameState {
 
 
-    private GameGrid currentState = new GameGrid();
+    private final GameGrid currentState;
 
+    public GameState() {
+        this.currentState = new GameGrid();
+    }
 
     public GameGrid getCurrentState() {
         return currentState;
@@ -26,15 +31,15 @@ public class GameState {
     }
 
     public void move(int position, int playerTurn) {
-        currentState.updateGrid(playerTurn,position);
+        currentState.updateGrid(playerTurn, position);
     }
 
 
-    public Boolean hasWon(Player currentPlayer) {
-        return anyRow(currentPlayer.getId()) ||
-                anyColumn(currentPlayer.getId()) ||
-                firstDiagonal(currentPlayer.getId()) ||
-                secondDiagonal(currentPlayer.getId());
+    public Boolean hasWon(int currentPlayerSymbol) {
+        return anyRow(currentPlayerSymbol) ||
+                anyColumn(currentPlayerSymbol) ||
+                firstDiagonal(currentPlayerSymbol) ||
+                secondDiagonal(currentPlayerSymbol);
     }
 
     private boolean anyRow(int playerSymbol) {
@@ -81,7 +86,7 @@ public class GameState {
 
     private boolean secondDiagonal(int playerSymbol) {
         int index = 0;
-        for (int i = 2; i>-1; i--) {
+        for (int i = 2; i > -1; i--) {
             if (currentState.getGameGrid().get(index).get(i) != playerSymbol) {
                 return false;
             }
@@ -91,18 +96,12 @@ public class GameState {
     }
 
 
-    public Boolean isDraw() {
-        if (availablePositions().size() == 0) {
+    public Boolean isDraw(int currentPlayerSymbol) {
+        if (availablePositions().size() == 0 && !hasWon(currentPlayerSymbol)) {
             return true;
         } else {
             return false;
         }
     }
 
-    @Override
-    public String toString() {
-        return currentState.getGameGrid().get(0) + "\n" +
-                currentState.getGameGrid().get(1) + "\n" +
-                currentState.getGameGrid().get(2);
-    }
 }
