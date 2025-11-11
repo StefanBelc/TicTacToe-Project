@@ -34,8 +34,11 @@ public class GameEngine {
         String result = "";
         initPlayers();
         while (!isGameOver()) {
-            players.get(0).makeDecision(gameState.availablePositions());
-            players.get(1).makeDecision(gameState.availablePositions());
+            int ticPosition = players.get(0).pickPosition(gameState.availablePositions());
+            gameState.tic(ticPosition);
+            int tacPosition = players.get(1).pickPosition(gameState.availablePositions());
+            gameState.tac(tacPosition);
+//            TODO : finish game logic
         }
 
 
