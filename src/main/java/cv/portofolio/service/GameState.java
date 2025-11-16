@@ -1,6 +1,5 @@
 package cv.portofolio.service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -16,10 +15,10 @@ public class GameState {
 
     public List<Integer> availablePositions() {
 
-       return IntStream.range(0,9)
-               .boxed()
-               .filter(position -> currentState.flatGrid().get(position) == 0)
-               .toList();
+        return IntStream.range(0, 9)
+                .boxed()
+                .filter(position -> currentState.flatGrid().get(position) == 0)
+                .toList();
     }
 
     public void init() {
@@ -27,50 +26,87 @@ public class GameState {
         System.out.println("\nGrid has been reset!");
     }
 
-//    tic = X
+    //    tic = X
     public void tic(int position) {
-        currentState.updateGrid(1,position);
+        currentState.updateGrid(1, position);
     }
 
-//    tac = 0
+    //    tac = 0
     public void tac(int position) {
-        currentState.updateGrid(2,position);
+        currentState.updateGrid(2, position);
     }
 
-    public ArrayList<Integer> getTicFreePositions() {
 
-            ArrayList<Integer> ticFreePositions = new ArrayList<>();
-            ticFreePositions.addAll(0,currentState.flatGrid());
-            for(int i=0; i<ticFreePositions.size(); i++) {
-                if (ticFreePositions.get(i) == 1) {
-                    ticFreePositions.set(i,0);
+    public Boolean hasWon(int symbol) {
+        return anyRow(symbol) ||
+                anyColumn(symbol) ||
+                firstDiagonal(symbol) ||
+                secondDiagonal(symbol);
+    }
+
+    private boolean anyRow(int playerSymbol) {
+
+        int playerSymbolCount = 0;
+        for (int i = 0; i < currentState.getGameGrid().size(); i++) {
+            for (int j = 0; j < currentState.getGameGrid().size(); j++) {
+                if (currentState.getGameGrid().get(i).get(j) == playerSymbol) {
+                    playerSymbolCount++;
+                }
+                if (playerSymbolCount == 3) {
+                    return true;
                 }
             }
-        return ticFreePositions;
+            playerSymbolCount = 0;
+        }
+        return false;
     }
 
-    public ArrayList<Integer> getTacFreePositions() {
-        ArrayList<Integer> tacFreePositions = new ArrayList<>();
-        tacFreePositions.addAll(0,currentState.flatGrid());
-        for(int i=0; i<tacFreePositions.size(); i++) {
-            if (tacFreePositions.get(i) == 2) {
-                tacFreePositions.set(i,0);
+    private boolean anyColumn(int playerSymbol) {
+        int playerSymbolCount = 0;
+        for (int i = 0; i < currentState.getGameGrid().size(); i++) {
+            for (int j = 0; j < currentState.getGameGrid().size(); j++) {
+                if (currentState.getGameGrid().get(j).get(i) == playerSymbol) {
+                    playerSymbolCount++;
+                }
+                if (playerSymbolCount == 3) {
+                    return true;
+                }
+            }
+            playerSymbolCount = 0;
+        }
+        return false;
+    }
+
+    private boolean firstDiagonal(int playerSymbol) {
+        for (int i = 0; i < currentState.getGameGrid().size(); i++) {
+            if (currentState.getGameGrid().get(i).get(i) != playerSymbol) {
+                return false;
             }
         }
-        return tacFreePositions;
+        return true;
     }
 
-//    TODO: implement
-    public Boolean hasTicWon() {
-        return false;
+    private boolean secondDiagonal(int playerSymbol) {
+        int index = 0;
+        for (int i = 2; i< currentState.getGameGrid().size(); i--) {
+            if (currentState.getGameGrid().get(index).get(i) != playerSymbol) {
+                return false;
+            }
+            index++;
+            if(index == 3) {
+                break;
+            }
+        }
+        return true;
     }
-    //    TODO: implement
-    public Boolean hasTacWon() {
-        return false;
-    }
-    //    TODO: implement
+
+
     public Boolean isDraw() {
-        return false;
+        if (availablePositions().size() == 0) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override

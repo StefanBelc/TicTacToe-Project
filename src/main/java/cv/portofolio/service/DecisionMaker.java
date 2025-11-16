@@ -1,6 +1,5 @@
 package cv.portofolio.service;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -8,9 +7,10 @@ public class DecisionMaker {
 
 
     protected int pickPosition(List<Integer> freePositions) {
-
+        if(freePositions.isEmpty()) {
+            return 0;
+        }
         int randomIndex = integerGenerator(0, freePositions.size(), freePositions.size());
-        Collections.shuffle(freePositions);
         return freePositions.get(randomIndex);
     }
 
