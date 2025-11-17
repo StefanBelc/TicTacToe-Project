@@ -88,7 +88,7 @@ public class GameState {
 
     private boolean secondDiagonal(int playerSymbol) {
         int index = 0;
-        for (int i = 2; i< currentState.getGameGrid().size(); i--) {
+        for (int i = 2; i>-1; i--) {
             if (currentState.getGameGrid().get(index).get(i) != playerSymbol) {
                 return false;
             }

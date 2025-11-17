@@ -5,8 +5,8 @@ import java.util.List;
 
 public class GameEngine {
     private List<Player> players = new ArrayList<>();
-    private int currentPlayerIndex;
-    GameState gameState = new GameState();
+    private int currentPlayerIndex = 0;
+    private GameState gameState = new GameState();
 
 
     private void initPlayers() {
@@ -29,16 +29,16 @@ public class GameEngine {
 
 
     public String startGame() {
-        initPlayers();
 
-        while (!isGameOver()) {
-            int ticPosition = players.get(0).pickPosition(gameState.availablePositions());
-            gameState.tic(ticPosition);
-            isGameOver();
-            int tacPosition = players.get(1).pickPosition(gameState.availablePositions());
-            gameState.tac(tacPosition);
 
-        }
+            while (!isGameOver()) {
+                int ticPosition = players.get(0).pickPosition(gameState.availablePositions());
+                gameState.tic(ticPosition);
+                isGameOver();
+                int tacPosition = players.get(1).pickPosition(gameState.availablePositions());
+                gameState.tac(tacPosition);
+
+            }
         return result();
     }
 
