@@ -7,7 +7,7 @@ import java.util.stream.Stream;
 
 public class GameGrid {
 
-    private static List<List<Integer>> gameGrid = List.of(
+    private List<List<Integer>> gameGrid = List.of(
             new ArrayList<>(List.of(0, 0, 0)),
             new ArrayList<>(List.of(0, 0, 0)),
             new ArrayList<>(List.of(0, 0, 0))
@@ -22,7 +22,7 @@ public class GameGrid {
 
     public List<List<Integer>> updateGrid(int playerTurn, int location) {
         if (playerTurn < 1 || playerTurn > 2 || location < 0 || location >= 9) {
-//            TODO : Throw exception
+//            TODO PA-24 : Throw exception
             System.out.println("No valid playerTurn/location");
             return new ArrayList<>();
         } else {
@@ -36,7 +36,7 @@ public class GameGrid {
                     index++;
                 }
             }
-//          TODO :  Throw exception
+//          TODO PA-24 :  Throw exception
             return gameGrid;
         }
     }
