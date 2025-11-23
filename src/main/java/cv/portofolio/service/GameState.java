@@ -26,22 +26,16 @@ public class GameState {
         System.out.println("\nGrid has been reset!");
     }
 
-    //    tic = X
-    public void tic(int position) {
-        currentState.updateGrid(1, position);
-    }
-
-    //    tac = 0
-    public void tac(int position) {
-        currentState.updateGrid(2, position);
+    public void move(int position, int playerTurn) {
+        currentState.updateGrid(playerTurn,position);
     }
 
 
-    public Boolean hasWon(int symbol) {
-        return anyRow(symbol) ||
-                anyColumn(symbol) ||
-                firstDiagonal(symbol) ||
-                secondDiagonal(symbol);
+    public Boolean hasWon(Player currentPlayer) {
+        return anyRow(currentPlayer.getId()) ||
+                anyColumn(currentPlayer.getId()) ||
+                firstDiagonal(currentPlayer.getId()) ||
+                secondDiagonal(currentPlayer.getId());
     }
 
     private boolean anyRow(int playerSymbol) {
@@ -93,9 +87,6 @@ public class GameState {
                 return false;
             }
             index++;
-            if(index == 3) {
-                break;
-            }
         }
         return true;
     }
