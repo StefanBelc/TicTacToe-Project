@@ -1,26 +1,31 @@
 package cv.portofolio.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class GameEngine {
+    private static final Logger logger = LoggerFactory.getLogger(GameEngine.class);
     private List<Player> players = new ArrayList<>();
     private int currentPlayerIndex = 0;
     private GameState gameState = new GameState();
 
 
     private void initPlayers() {
-        Player tic = new Player("Tic");
-        Player tac = new Player("Tac");
-        players.add(tic);
-        players.add(tac);
+        players.add(new Player("Tic", 1));
+        players.add(new Player("Tac", 2));
+        logger.info("Players initialized");
     }
 
 
-    private Boolean isGameOver() {
-        if (gameState.hasWon(1) || gameState.hasWon(2)) {
+    private Boolean isGameOver(Player currentPlayer) {
+        if (gameState.hasWon(currentPlayer)) {
+            logger.info("Player " + currentPlayer.getName() + " is the winner");
             return true;
         } else if (gameState.isDraw()) {
+            logger.info("DRAW");
             return true;
         } else {
             return false;
@@ -28,33 +33,42 @@ public class GameEngine {
     }
 
 
-    public String startGame() {
+    public Result startGame() {
+        gameState.init();
+        initPlayers();
+        Player currentPlayer = players.get(currentPlayerIndex);
 
-
-            while (!isGameOver()) {
-                int ticPosition = players.get(0).pickPosition(gameState.availablePositions());
-                gameState.tic(ticPosition);
-                isGameOver();
-                int tacPosition = players.get(1).pickPosition(gameState.availablePositions());
-                gameState.tac(tacPosition);
-
+        while (!isGameOver(currentPlayer)) {
+            gameState.move(currentPlayer.pickPosition(gameState.availablePositions()), currentPlayerIndex + 1);
+            logger.info(currentPlayer.getName() + " moved to position " + currentPlayer.getLastPosition());
+            if (isGameOver(currentPlayer)) {
+                break;
             }
-        return result();
+            currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
+            currentPlayer = players.get(currentPlayerIndex);
+
+            gameState.move(currentPlayer.pickPosition(gameState.availablePositions()), currentPlayerIndex + 1);
+            logger.info(currentPlayer.getName() + " moved to position " + currentPlayer.getLastPosition());
+            currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
+            currentPlayer = players.get(currentPlayerIndex);
+        }
+        Result finalResult = result(players, gameState.isDraw(), gameState.getCurrentState().getGameGrid());
+        logger.info(String.valueOf(finalResult));
+        return finalResult;
     }
 
-    private String result() {
-        if (gameState.hasWon(1)) {
-            return "X has won !" + "\n" + gameState.getCurrentState().getGameGrid().toString();
-        } else if (gameState.hasWon(2)) {
-            return "0 has won !" + "\n" + gameState.getCurrentState().getGameGrid().toString();
-        } else {
-            return "DRAW!" + "\n" + gameState.getCurrentState().getGameGrid().toString();
+    private Result result(List<Player> players, boolean isDraw, List<List<Integer>> finalGrid) {
+        for (Player player : players) {
+            if (gameState.hasWon(player)) {
+                return new Result(player, isDraw, finalGrid);
+            }
         }
+        return new Result(null, isDraw, finalGrid);
     }
 
     @Override
     public String toString() {
-        return "\n" + gameState.getCurrentState().getGameGrid().get(0) +
+        return "Board: " + "\n" + gameState.getCurrentState().getGameGrid().get(0) +
                 "\n" + gameState.getCurrentState().getGameGrid().get(1) +
                 "\n" + gameState.getCurrentState().getGameGrid().get(2);
     }

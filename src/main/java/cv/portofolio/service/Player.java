@@ -4,19 +4,31 @@ import java.util.List;
 
 public class Player {
 
-    private String name;
+    private final DecisionMaker decisionMaker = new DecisionMaker();
+
+    private final String name;
+    private final int id;
+
+    private int lastPosition;
 
 
     public String getName() {
         return name;
     }
+    public int getId() {
+        return id;
+    }
 
-    public Player(String name) {
+    public int getLastPosition() {
+        return lastPosition;
+    }
+
+    public Player(String name, int playerId) {
         this.name = name;
+        this.id = playerId;
     }
 
     public int pickPosition(List<Integer> freePositions) {
-        DecisionMaker decisionMaker = new DecisionMaker();
-        return decisionMaker.pickPosition(freePositions);
+        return lastPosition = decisionMaker.pickPosition(freePositions);
     }
 }
