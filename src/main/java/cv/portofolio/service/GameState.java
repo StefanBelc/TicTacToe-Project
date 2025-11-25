@@ -23,7 +23,6 @@ public class GameState {
 
     public void init() {
         getCurrentState().resetGrid();
-        System.out.println("\nGrid has been reset!");
     }
 
     public void move(int position, int playerTurn) {

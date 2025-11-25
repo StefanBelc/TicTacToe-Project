@@ -13,10 +13,15 @@ public class GameEngine {
     private GameState gameState = new GameState();
 
 
-    private void initPlayers() {
-        players.add(new Player("Tic", 1));
-        players.add(new Player("Tac", 2));
-        logger.info("Players initialized");
+    private void initPlayers(List<Player> players) {
+        try {
+            this.players.addAll(players);
+            logger.info("Players initialized");
+        } catch (PlayerNotFoundException e) {
+            logger.error("Failed to generate players: {} ", e.getMessage());
+            players.add(new Player("Tic", 1));
+            players.add(new Player("Tac", 2));
+        }
     }
 
 
@@ -33,28 +38,52 @@ public class GameEngine {
     }
 
 
-    public Result startGame() {
+    public Result startGame(List<Player> currentPlayers) {
         gameState.init();
-        initPlayers();
+        logger.info("grid has been reset!");
+        initPlayers(currentPlayers);
         Player currentPlayer = players.get(currentPlayerIndex);
-
+        boolean hasPlayerMoved = false;
         while (!isGameOver(currentPlayer)) {
-            gameState.move(currentPlayer.pickPosition(gameState.availablePositions()), currentPlayerIndex + 1);
-            logger.info(currentPlayer.getName() + " moved to position " + currentPlayer.getLastPosition());
+
+            while (!hasPlayerMoved) {
+                try {
+                    gameState.move(currentPlayer.pickPosition(gameState.availablePositions()), currentPlayerIndex + 1);
+                    logger.info(currentPlayer.getName() + " moved to position " + currentPlayer.getLastPosition());
+                    hasPlayerMoved = true;
+                } catch (NoAvailablePositionFoundException e) {
+                    logger.error("No available move {}", e.getMessage());
+                    return finalResult.getResult();
+                } catch (InvalidMoveException e) {
+                    logger.error("Invalid move ! {}", e.getMessage());
+                }
+            }
             if (isGameOver(currentPlayer)) {
                 break;
             }
             currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
             currentPlayer = players.get(currentPlayerIndex);
+            hasPlayerMoved = false;
 
-            gameState.move(currentPlayer.pickPosition(gameState.availablePositions()), currentPlayerIndex + 1);
-            logger.info(currentPlayer.getName() + " moved to position " + currentPlayer.getLastPosition());
-            currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
-            currentPlayer = players.get(currentPlayerIndex);
+            while (!hasPlayerMoved) {
+                try {
+                    gameState.move(currentPlayer.pickPosition(gameState.availablePositions()), currentPlayerIndex + 1);
+                    logger.info(currentPlayer.getName() + " moved to position " + currentPlayer.getLastPosition());
+                    hasPlayerMoved = true;
+                } catch (NoAvailablePositionFoundException e) {
+                    logger.error("No available move {}", e.getMessage());
+                    return finalResult.getResult();
+                } catch (InvalidMoveException e) {
+                    logger.error("Invalid move ! {}", e.getMessage());
+                }
+                currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
+                currentPlayer = players.get(currentPlayerIndex);
+            }
         }
-        Result finalResult = result(players, gameState.isDraw(), gameState.getCurrentState().getGameGrid());
+        finalResult = result(players, gameState.isDraw(), gameState.getCurrentState().getGameGrid());
         logger.info(String.valueOf(finalResult));
-        return finalResult;
+        return finalResult.getResult();
+        // TODO: PA-25 Continue tournament logic + player winning score (break when 3 reached)
     }
 
     private Result result(List<Player> players, boolean isDraw, List<List<Integer>> finalGrid) {
