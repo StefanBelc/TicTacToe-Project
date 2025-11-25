@@ -10,6 +10,7 @@ public class Player {
     private final int id;
 
     private int lastPosition;
+    private int winningCount;
 
 
     public String getName() {
@@ -21,6 +22,14 @@ public class Player {
 
     public int getLastPosition() {
         return lastPosition;
+    }
+
+    public int getWinningCount() {
+        return winningCount;
+    }
+
+    public void incrementWinningCount() {
+        this.winningCount++;
     }
 
     public Player(String name, int playerId) {
