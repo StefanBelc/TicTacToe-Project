@@ -11,6 +11,7 @@ public class GameEngine {
     private List<Player> players = new ArrayList<>();
     private int currentPlayerIndex = 0;
     private GameState gameState = new GameState();
+    private Result finalResult;
 
 
     private void initPlayers() {
@@ -52,7 +53,7 @@ public class GameEngine {
             currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
             currentPlayer = players.get(currentPlayerIndex);
         }
-        Result finalResult = result(players, gameState.isDraw(), gameState.getCurrentState().getGameGrid());
+        finalResult = result(players, gameState.isDraw(), gameState.getCurrentState().getGameGrid());
         logger.info(String.valueOf(finalResult));
         return finalResult;
     }
