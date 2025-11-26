@@ -4,12 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PlayerGenerator {
-    public List<Player> generate(int playersNumber) {
+    public List<Player> generatePlayers(int playersNumber) {
         List<Player> players = new ArrayList<>();
-        for (int i = 0; i <= playersNumber; i++) {
-            Player player = new Player();
-            players.add(player);
-        }
+        players.add(new Player("Tic", 1));
+        players.add(new Player("Tac", 2));
         return players;
     }
 }

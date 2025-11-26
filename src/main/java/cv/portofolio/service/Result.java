@@ -4,15 +4,34 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Result {
+    private int winnerId;
     private Player player;
     private Boolean isDraw;
     private List<List<Integer>> finalGrid;
+    private int winningScore = 0;
+    private int matchesCount;
 
-   private final StringBuilder formattedGrid = new StringBuilder();
+
+    private final StringBuilder formattedGrid = new StringBuilder();
+
     public Result(Player winner, boolean isDraw, List<List<Integer>> finalGrid) {
         this.player = winner;
         this.isDraw = isDraw;
         this.finalGrid = finalGrid;
+
+    }
+
+    public int getWinnerId() {
+        return winnerId;
+    }
+
+    public int getMatchesCount() {
+        return matchesCount;
+    }
+
+    public int getWinningScore() {
+        return winningScore;
+
     }
 
     private void convertFinalGrid() {
@@ -20,9 +39,20 @@ public class Result {
         for (int i = 0; i < finalGrid.size(); i++) {
             convertedList.add(String.valueOf(finalGrid.get(i)));
         }
-        formattedGrid.append("\n" + convertedList.get(0) +"\n" + convertedList.get(1) + "\n" + convertedList.get(2));
+        formattedGrid.append("\n" + convertedList.get(0) + "\n" + convertedList.get(1) + "\n" + convertedList.get(2));
     }
 
+    public Result getResult() {
+        matchesCount++;
+        if (player != null) {
+            this.winnerId = player.getId();
+            player.incrementWinningCount();
+            winningScore = player.getWinningCount();
+        } else {
+            isDraw = true;
+        }
+        return this;
+    }
 
     @Override
     public String toString() {

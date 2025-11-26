@@ -22,9 +22,7 @@ public class GameGrid {
 
     public List<List<Integer>> updateGrid(int playerTurn, int location) {
         if (playerTurn < 1 || playerTurn > 2 || location < 0 || location >= 9) {
-//            TODO PA-24 : Throw exception
-            System.out.println("No valid playerTurn/location");
-            return new ArrayList<>();
+            throw new InvalidMoveException("Invalid move!");
         } else {
             int index = 0;
             for (int i = 0; i < gameGrid.size(); i++) {
@@ -36,8 +34,7 @@ public class GameGrid {
                     index++;
                 }
             }
-//          TODO PA-24 :  Throw exception
-            return gameGrid;
+            throw new NoAvailablePositionFoundException("No available move!");
         }
     }
 
@@ -50,7 +47,6 @@ public class GameGrid {
     }
 
     public List<Integer> flatGrid() {
-
         return Stream.of(getGameGrid())
                 .flatMap(Collection::stream)
                 .flatMap(Collection::stream)
