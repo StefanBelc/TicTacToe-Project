@@ -7,9 +7,6 @@ public class DecisionMaker {
     private final Random random = new Random();
 
     protected int pickPosition(List<Integer> freePositions) {
-        if(freePositions.isEmpty()) {
-            throw new NoAvailablePositionFoundException("No available move !");
-        }
         int randomIndex = random.nextInt(freePositions.size());
         return freePositions.get(randomIndex);
     }
