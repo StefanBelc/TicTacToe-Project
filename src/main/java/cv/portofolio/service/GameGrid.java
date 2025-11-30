@@ -21,9 +21,6 @@ public class GameGrid {
     }
 
     public List<List<Integer>> updateGrid(int playerTurn, int location) {
-        if (playerTurn < 1 || playerTurn > 2 || location < 0 || location >= 9) {
-            throw new InvalidMoveException("Invalid move!");
-        } else {
             int index = 0;
             for (int i = 0; i < gameGrid.size(); i++) {
                 for (int j = 0; j < gameGrid.get(i).size(); j++) {
@@ -34,8 +31,7 @@ public class GameGrid {
                     index++;
                 }
             }
-            throw new NoAvailablePositionFoundException("No available move!");
-        }
+            return gameGrid;
     }
 
     public void resetGrid() {

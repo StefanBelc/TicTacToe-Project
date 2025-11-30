@@ -23,11 +23,10 @@ public class GameState {
 
     public void init() {
         getCurrentState().resetGrid();
-        System.out.println("\nGrid has been reset!");
     }
 
     public void move(int position, int playerTurn) {
-        currentState.updateGrid(playerTurn,position);
+        currentState.updateGrid(playerTurn, position);
     }
 
 
@@ -82,7 +81,7 @@ public class GameState {
 
     private boolean secondDiagonal(int playerSymbol) {
         int index = 0;
-        for (int i = 2; i>-1; i--) {
+        for (int i = 2; i > -1; i--) {
             if (currentState.getGameGrid().get(index).get(i) != playerSymbol) {
                 return false;
             }

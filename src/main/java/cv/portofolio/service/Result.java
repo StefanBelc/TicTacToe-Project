@@ -9,16 +9,24 @@ public class Result {
     private Boolean isDraw;
     private List<List<Integer>> finalGrid;
     private int winningScore = 0;
-    private int matchesCount;
+    private int matchesCount = 0;
 
 
     private final StringBuilder formattedGrid = new StringBuilder();
 
+    public Result(Player winner, List<List<Integer>> finalGrid) {
+        this.player = winner;
+        this.finalGrid = finalGrid;
+
+    }
     public Result(Player winner, boolean isDraw, List<List<Integer>> finalGrid) {
         this.player = winner;
         this.isDraw = isDraw;
         this.finalGrid = finalGrid;
+    }
 
+    public boolean isDraw() {
+        return this.isDraw;
     }
 
     public int getWinnerId() {
@@ -48,8 +56,6 @@ public class Result {
             this.winnerId = player.getId();
             player.incrementWinningCount();
             winningScore = player.getWinningCount();
-        } else {
-            isDraw = true;
         }
         return this;
     }
@@ -58,7 +64,8 @@ public class Result {
     public String toString() {
         convertFinalGrid();
         if (player == null && isDraw) {
-            return "The game is a draw! No Player wins!";
+            return "The game is a draw! No Player wins!" +
+                    "\nFinal Grid:" + formattedGrid;
         } else {
             return "Winner: " + player.getName() +
                     "\nFinal Grid:" + formattedGrid;
