@@ -51,8 +51,6 @@ public class Tournament {
                 }
                 tournamentRounds++;
             }
-        // TODO: PA-25 finish RoundRobin format (points-calculated results)
-        //TODO: Check accuracy of top 3 winners
         return tournamentResult(resultsList, numberOfPlayers, tournamentRounds, ROUND_ROBIN);
     }
 
@@ -138,7 +136,7 @@ public class Tournament {
                                               int totalRounds, TournamentFormat tournamentFormat) {
 
         List<Winner> topThreeWinnersList = new ArrayList<>();
-        // TODO: PA-25 Correct method to return accurate results
+
         if (tournamentFormat == ROUND_ROBIN) {
             Comparator<Player> gameResultsComparator = Comparator.comparingInt(Player::getWinningCount);
             List<Player> topThreeWinners = gameResults.stream()
