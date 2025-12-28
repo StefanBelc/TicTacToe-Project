@@ -1,10 +1,13 @@
 package cv.portofolio.service;
 
+import org.springframework.stereotype.Component;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 
+@Component
 public class GameGrid {
 
     private List<List<Integer>> gameGrid = List.of(
