@@ -1,81 +1,76 @@
 package cv.portofolio.service;
 
-import java.util.ArrayList;
-import java.util.List;
+import lombok.Builder;
 
-public class GameResult {
+@Builder
 
-    private Player winner = new Player("Winner", 0);
-    private Player loser = new Player("Loser",0);
-    private Player player1;
-    private Player player2;
-    private Boolean isDraw;
-    private List<List<Integer>> finalGrid;
+public record GameResult(Player player1,
+                         Player player2,
+                         boolean isDraw,
+                         boolean player1Won,
+                         boolean player2Won) {
 
-    private final StringBuilder formattedGrid = new StringBuilder();
-
-    public GameResult(Player winner, Player player1, Player player2, boolean isDraw, List<List<Integer>> finalGrid) {
-        if (player1.equals(winner)) {
-            this.winner = player1;
-            this.loser = player2;
-        } else if (player2.equals(winner)) {
-            this.winner = player2;
-            this.loser = player1;
-        }
-        this.player1 = player1;
-        this.player2 = player2;
-        this.isDraw = isDraw;
-        this.finalGrid = finalGrid;
-    }
-
-    public Player getWinner() {
-        return winner;
-    }
-
-    public Player getPlayer1() {
-        return this.player1;
-    }
-
-    public Player getPlayer2() {
-        return this.player2;
-    }
-
-    public Player getLoser() {
-        return loser;
-    }
 
     public boolean isDraw() {
         return this.isDraw;
     }
-
-
-    private void convertFinalGrid() {
-        List<String> convertedList = new ArrayList<>();
-        for (int i = 0; i < finalGrid.size(); i++) {
-            convertedList.add(String.valueOf(finalGrid.get(i)));
-        }
-        formattedGrid.append("\n" + convertedList.get(0) + "\n" + convertedList.get(1) + "\n" + convertedList.get(2));
+    
+    public static GameResult player1Winner(Player player1, Player player2) {
+        player1.incrementWinningCount();
+        player2.incrementLoseCount();
+        
+        return GameResult.builder()
+                .player1(player1)
+                .player2(player2)
+                .isDraw(false)
+                .player1Won(true)
+                .player2Won(false)
+                .build();
     }
 
-    public GameResult getResult() {
-        return this;
-
+    public static GameResult player2Winner(Player player1, Player player2) {
+        player1.incrementLoseCount();
+        player2.incrementWinningCount();
+        
+        return GameResult.builder()
+                .player1(player1)
+                .player2(player2)
+                .isDraw(false)
+                .player1Won(false)
+                .player2Won(true)
+                .build();
     }
 
-    public void updateResult() {
+    public static GameResult drawResult(Player player1, Player player2) {
+        player1.incrementDrawCount();
+        player2.incrementDrawCount();
+        
+        return GameResult.builder()
+                .player1(player1)
+                .player2(player2)
+                .isDraw(true)
+                .player1Won(false)
+                .player2Won(false)
+                .build();
+    }
 
-        if (isDraw()) {
-            player1.incrementDrawCount();
-            player2.incrementDrawCount();
+    public Player getWinner() {
+        if(player1Won) {
+            return player1;
+        } else if(player2Won) {
+            return player2;
         } else {
-            winner.incrementWinningCount();
-            loser.incrementLoseCount();
+            throw new IllegalStateException("Game result is draw. There is no winner");
         }
     }
 
-    @Override
-    public String toString() {
-        convertFinalGrid();
-        return formattedGrid.toString();
+    public Player getLoser() {
+        if(player1Won) {
+            return player2;
+        } else if(player2Won) {
+            return player1;
+        } else {
+            throw new IllegalStateException("Game result is draw. There is no loser");
+        }
     }
 }

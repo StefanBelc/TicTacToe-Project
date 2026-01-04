@@ -1,6 +1,5 @@
 package cv.portofolio.service;
 
-import jakarta.validation.constraints.Min;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -24,7 +23,7 @@ public class Tournament {
         this.playerGenerator = new PlayerGenerator();
     }
 
-    public TournamentResult startTournament(@Min(3) int numberOfPlayers) {
+    public TournamentResult startTournament(int numberOfPlayers) {
         if (numberOfPlayers % 2 == 0) {
             return singleEliminationFormat(numberOfPlayers);
         } else {
@@ -107,9 +106,9 @@ public class Tournament {
         List<PlayersPair> pairedPlayers = new ArrayList<>();
         if (tournamentFormat == SINGLE_ELIMINATION) {
             int index = 0;
-            int loopCondition = (int) Math.ceil((double) players.size() / 2);
-            for (int i = 0; i < loopCondition; i++) {
-                if (i == loopCondition - 1 && (players.size() % 2 != 0)) {
+            int pairsCount = (int) Math.ceil((double) players.size() / 2);
+            for (int i = 0; i < pairsCount; i++) {
+                if (i == pairsCount - 1 && (players.size() % 2 != 0)) {
                     pairedPlayers.add(new PlayersPair(players.get(index), null));
                     break;
                 } else {
@@ -168,6 +167,8 @@ public class Tournament {
             List<Player> winners = new ArrayList<>();
             GameResult finalMatch = null;
             GameResult semiFinal = null;
+
+            // TODO: PA-25 UnitTest
 
                 if(resultListIterator.hasPrevious()) {
                     finalMatch = resultListIterator.previous();

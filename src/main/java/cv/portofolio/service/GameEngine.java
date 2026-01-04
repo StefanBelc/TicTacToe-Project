@@ -73,28 +73,19 @@ public class GameEngine {
 
         }
 
-        finalGameResult = result(players, gameState.getCurrentState().getGameGrid());
+        finalGameResult = result(players.get(0),players.get(1));
         logger.info(String.valueOf(finalGameResult));
-         finalGameResult.updateResult();
-         return finalGameResult.getResult();
-
+        return finalGameResult;
     }
 
-    private GameResult result(List<Player> players, List<List<Integer>> finalGrid) {
-        if (gameState.hasWon(players.get(0).getPlayerSymbol())) {
-            return new GameResult(players.get(0),players.get(0), players.get(1), false, finalGrid);
-        } else if (gameState.hasWon(players.get(1).getPlayerSymbol())) {
-            return new GameResult(players.get(1),players.get(1), players.get(0), false, finalGrid);
+    private GameResult result(Player player1, Player player2) {
+        if (gameState.hasWon(player1.getPlayerSymbol())) {
+           return GameResult.player1Winner(player1,player2);
+        } else if (gameState.hasWon(player2.getPlayerSymbol())) {
+            return GameResult.player2Winner(player1,player2);
         } else {
-            return new GameResult(null,players.get(0), players.get(1), true, finalGrid);
+            return GameResult.drawResult(player1,player2);
         }
     }
 
-
-//    @Override
-//    public String toString() {
-//        return "Board: " + "\n" + gameState.getCurrentState().getGameGrid().get(0) +
-//                "\n" + gameState.getCurrentState().getGameGrid().get(1) +
-//                "\n" + gameState.getCurrentState().getGameGrid().get(2);
-//    }
 }
