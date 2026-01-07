@@ -17,7 +17,7 @@ public class KafkaProducer {
     public void send() {
         try {
             kafkaTemplate.send("test-topic", "connection-test-key", "Hello Kafka!");
-            System.out.println("✅ Kafka Producer: Message sent to topic " + TEST_TOPIC);
+            System.out.println("------------ Kafka Producer: Message sent to topic " + TEST_TOPIC);
         } catch (Exception e) {
             System.out.println("ERROR " + e.getMessage());;
         }
