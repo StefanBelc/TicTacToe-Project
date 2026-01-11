@@ -1,5 +1,7 @@
 package cv.portofolio.service;
 
+import com.company.promobridge.GameEventProducer;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -7,18 +9,15 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
+@RequiredArgsConstructor
 @Service
 public class GameEngine {
     private static final Logger logger = LoggerFactory.getLogger(GameEngine.class);
     private final List<Player> players = new ArrayList<>();
-    private int currentPlayerIndex;
     private final GameState gameState;
-    private GameResult finalGameResult;
+    private final GameEventProducer gameEventProducer;
 
-    public GameEngine() {
-        this.currentPlayerIndex = 0;
-        this.gameState = new GameState();
-    }
+
 
     private void initPlayers(PlayersPair playersPair) {
         this.players.add(playersPair.player1());
@@ -45,7 +44,7 @@ public class GameEngine {
         gameState.init();
         logger.info("grid has been reset!");
         initPlayers(playersPair);
-        currentPlayerIndex = 0;
+        int currentPlayerIndex = 0;
         Player currentPlayer = players.get(currentPlayerIndex);
         currentPlayer.assignPlayerSymbol(currentPlayerIndex);
 
@@ -73,7 +72,7 @@ public class GameEngine {
 
         }
 
-        finalGameResult = result(players.get(0),players.get(1));
+        GameResult finalGameResult = result(players.get(0), players.get(1));
         logger.info(String.valueOf(finalGameResult));
         return finalGameResult;
     }

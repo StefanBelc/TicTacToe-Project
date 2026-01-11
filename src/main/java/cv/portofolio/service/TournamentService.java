@@ -1,5 +1,7 @@
 package cv.portofolio.service;
 
+import com.company.promobridge.TournamentEventProducer;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -9,19 +11,17 @@ import java.util.*;
 import static cv.portofolio.service.TournamentFormat.ROUND_ROBIN;
 import static cv.portofolio.service.TournamentFormat.SINGLE_ELIMINATION;
 
+@RequiredArgsConstructor
 @Service
-public class Tournament {
-    private static final Logger logger = LoggerFactory.getLogger(Tournament.class);
+public class TournamentService {
+    private static final Logger logger = LoggerFactory.getLogger(TournamentService.class);
     private final GameEngine gameEngine;
     private final PlayerGenerator playerGenerator;
+    private final TournamentEventProducer tournamentEventProducer;
 
     private int totalMatches;
     private List<GameResult> resultsList = new ArrayList<>();
 
-    public Tournament() {
-        this.gameEngine = new GameEngine();
-        this.playerGenerator = new PlayerGenerator();
-    }
 
     public TournamentResult startTournament(int numberOfPlayers) {
         if (numberOfPlayers % 2 == 0) {
@@ -193,4 +193,6 @@ public class Tournament {
             throw new IllegalArgumentException("Invalid Tournament Format");
         }
     }
+
+    // TODO: PA-27 CREATE METHODS : sendTournamentStartedEvent(), sendTournamentFinishedEvent()
 }
