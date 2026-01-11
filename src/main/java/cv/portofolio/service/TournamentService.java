@@ -1,5 +1,7 @@
 package cv.portofolio.service;
 
+import com.company.promobridge.*;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -9,52 +11,67 @@ import java.util.*;
 import static cv.portofolio.service.TournamentFormat.ROUND_ROBIN;
 import static cv.portofolio.service.TournamentFormat.SINGLE_ELIMINATION;
 
+@RequiredArgsConstructor
 @Service
-public class Tournament {
-    private static final Logger logger = LoggerFactory.getLogger(Tournament.class);
+public class TournamentService {
+    private static final Logger logger = LoggerFactory.getLogger(TournamentService.class);
     private final GameEngine gameEngine;
     private final PlayerGenerator playerGenerator;
 
     private int totalMatches;
-    private List<GameResult> resultsList = new ArrayList<>();
+    private final List<GameResult> resultsList;
+    private final List<GameEvent> gameEvents;
+    private final TournamentEventPublisher tournamentEventPublisher;
+    private final GameEventPublisher gameEventPublisher;
 
-    public Tournament() {
-        this.gameEngine = new GameEngine();
-        this.playerGenerator = new PlayerGenerator();
-    }
 
     public TournamentResult startTournament(int numberOfPlayers) {
+        String tournamentId = UUID.randomUUID().toString();
         if (numberOfPlayers % 2 == 0) {
-            return singleEliminationFormat(numberOfPlayers);
+            return singleEliminationFormat(numberOfPlayers, tournamentId);
         } else {
-            return roundRobinFormat(numberOfPlayers);
+            return roundRobinFormat(numberOfPlayers, tournamentId);
         }
     }
 
-    private TournamentResult roundRobinFormat(int numberOfPlayers) {
+    private TournamentResult roundRobinFormat(int numberOfPlayers, String tournamentId) {
+        tournamentEventPublisher.sendTournamentCreatedEvent(tournamentId);
         int tournamentRounds = 0;
         GameResult gameResult;
         List<Player> generatedPlayers = playerGenerator.generatePlayers(numberOfPlayers);
         List<PlayersPair> pairedPlayers = pairPlayers(generatedPlayers, ROUND_ROBIN);
+        tournamentEventPublisher.sendTournamentStartedEvent(tournamentId, numberOfPlayers, totalMatches, gameEvents);
 
-            for(int i =0; i<pairedPlayers.size(); i++) {
-                logger.info("{} is playing against {}", pairedPlayers.get(i).player1().getName(),
-                        pairedPlayers.get(i).player2().getName());
+        for (int i = 0; i < pairedPlayers.size(); i++) {
+            String gameId = UUID.randomUUID().toString();
+            gameEvents.add(gameEventPublisher.sendGameCreatedEvent(gameId, tournamentId, pairedPlayers.get(i).player1().getName(), pairedPlayers.get(i).player2().getName()));
+
+            logger.info("{} is playing against {}", pairedPlayers.get(i).player1().getName(),
+                    pairedPlayers.get(i).player2().getName());
+            gameEvents.add(gameEventPublisher.sendGameStartedEvent(gameId, tournamentId, pairedPlayers.get(i).player1().getName(), pairedPlayers.get(i).player2().getName()));
+            gameResult = gameEngine.startGame(pairedPlayers.get(i));
+            gameEvents.add(gameEventPublisher.sendGameFinishedEvent(gameId, tournamentId, gameResult.player1().getName(), gameResult.player2().getName(), gameResult.getWinner().getName(), gameResult.getLoser().getName(), gameResult.isDraw()));
+            totalMatches++;
+            resultsList.add(gameResult);
+
+            if (gameResult.isDraw()) {
+                gameId = UUID.randomUUID().toString();
+                gameEvents.add(gameEventPublisher.sendGameCreatedEvent(gameId, tournamentId, pairedPlayers.get(i).player1().getName(), pairedPlayers.get(i).player2().getName()));
+                gameEvents.add(gameEventPublisher.sendGameStartedEvent(gameId, tournamentId, pairedPlayers.get(i).player1().getName(), pairedPlayers.get(i).player2().getName()));
                 gameResult = gameEngine.startGame(pairedPlayers.get(i));
+                gameEvents.add(gameEventPublisher.sendGameFinishedEvent(gameId, tournamentId, gameResult.player1().getName(), gameResult.player2().getName(), gameResult.getWinner().getName(), gameResult.getLoser().getName(), gameResult.isDraw()));
                 totalMatches++;
                 resultsList.add(gameResult);
-                if(gameResult.isDraw()) {
-                    gameResult = gameEngine.startGame(pairedPlayers.get(i));
-                    totalMatches++;
-                    resultsList.add(gameResult);
-                }
-                tournamentRounds++;
             }
+            tournamentRounds++;
+        }
+        tournamentEventPublisher.sendTournamentFinishedEvent(tournamentId, numberOfPlayers, totalMatches, gameEvents);
         return tournamentResult(resultsList, numberOfPlayers, tournamentRounds, ROUND_ROBIN);
     }
 
 
-    private TournamentResult singleEliminationFormat(int numberOfPlayers) {
+    private TournamentResult singleEliminationFormat(int numberOfPlayers, String tournamentId) {
+        tournamentEventPublisher.sendTournamentCreatedEvent(tournamentId);
 
         List<Player> generatedPlayers = playerGenerator.generatePlayers(numberOfPlayers);
         int tournamentRounds = 0;
@@ -62,9 +79,13 @@ public class Tournament {
         GameResult gameResult;
         List<PlayersPair> pairedPlayers = pairPlayers(generatedPlayers, SINGLE_ELIMINATION);
         List<Player> winners = new ArrayList<>();
+        tournamentEventPublisher.sendTournamentStartedEvent(tournamentId, numberOfPlayers, totalMatches, gameEvents);
 
         while (isPlaying) {
             for (int i = 0; i < pairedPlayers.size(); i++) {
+                String gameId = UUID.randomUUID().toString();
+                gameEvents.add(gameEventPublisher.sendGameCreatedEvent(gameId, tournamentId, pairedPlayers.get(i).player1().getName(), pairedPlayers.get(i).player2().getName()));
+
                 if (pairedPlayers.get(i).player1() == null) {
                     winners.add(pairedPlayers.get(i).player2());
                     continue;
@@ -74,12 +95,19 @@ public class Tournament {
                 } else {
                     logger.info("{} is playing against {}", pairedPlayers.get(i).player1().getName(),
                             pairedPlayers.get(i).player2().getName());
-
+                    gameEvents.add(gameEventPublisher.sendGameStartedEvent(gameId, tournamentId, pairedPlayers.get(i).player1().getName(), pairedPlayers.get(i).player2().getName()));
                     gameResult = gameEngine.startGame(pairedPlayers.get(i));
+                    gameEvents.add(gameEventPublisher.sendGameFinishedEvent(gameId, tournamentId, gameResult.player1().getName(), gameResult.player2().getName(), gameResult.getWinner().getName(), gameResult.getLoser().getName(), gameResult.isDraw()));
                     totalMatches++;
                     resultsList.add(gameResult);
                     while (gameResult.isDraw()) {
+                        gameId = UUID.randomUUID().toString();
+                        gameEvents.add(gameEventPublisher.sendGameCreatedEvent(gameId, tournamentId, pairedPlayers.get(i).player1().getName(), pairedPlayers.get(i).player2().getName()));
+                        gameEvents.add(gameEventPublisher.sendGameStartedEvent(gameId, tournamentId, pairedPlayers.get(i).player1().getName(), pairedPlayers.get(i).player2().getName()));
+
                         gameResult = gameEngine.startGame(pairedPlayers.get(i));
+                        gameEvents.add(gameEventPublisher.sendGameFinishedEvent(gameId, tournamentId, gameResult.player1().getName(), gameResult.player2().getName(), gameResult.getWinner().getName(), gameResult.getLoser().getName(), gameResult.isDraw()));
+
                         resultsList.add(gameResult);
                         totalMatches++;
                     }
@@ -97,6 +125,7 @@ public class Tournament {
             winners.clear();
         }
         logger.info("Total Matches played: {}", totalMatches);
+        tournamentEventPublisher.sendTournamentFinishedEvent(tournamentId, numberOfPlayers, totalMatches, gameEvents);
         return tournamentResult(resultsList, numberOfPlayers, tournamentRounds, SINGLE_ELIMINATION);
     }
 
@@ -139,7 +168,7 @@ public class Tournament {
         if (tournamentFormat == ROUND_ROBIN) {
             Comparator<Player> gameResultsComparator = Comparator.comparingInt(Player::getWinningCount);
             List<Player> topThreeWinners = gameResults.stream()
-                    .filter(s-> !s.isDraw())
+                    .filter(s -> !s.isDraw())
                     .map(GameResult::getWinner)
                     .sorted(gameResultsComparator.reversed().
                             thenComparing(Player::getLoseCount)
@@ -170,15 +199,15 @@ public class Tournament {
 
             // TODO: PA-25 UnitTest
 
-                if(resultListIterator.hasPrevious()) {
-                    finalMatch = resultListIterator.previous();
-                    semiFinal = resultListIterator.previous();
-                }
-                winners.add(finalMatch.getWinner());
-                winners.add(finalMatch.getLoser());
-                winners.add(semiFinal.getLoser());
+            if (resultListIterator.hasPrevious()) {
+                finalMatch = resultListIterator.previous();
+                semiFinal = resultListIterator.previous();
+            }
+            winners.add(finalMatch.getWinner());
+            winners.add(finalMatch.getLoser());
+            winners.add(semiFinal.getLoser());
 
-            for(Player winner : winners) {
+            for (Player winner : winners) {
                 topThreeWinnersList.add(new Winner(winner.getName(),
                         winner.getWinningCount(),
                         winner.getLoseCount(),
