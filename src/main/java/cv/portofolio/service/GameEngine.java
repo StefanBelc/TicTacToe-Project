@@ -1,6 +1,5 @@
 package cv.portofolio.service;
 
-import com.company.promobridge.GameEventProducer;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,9 +14,6 @@ public class GameEngine {
     private static final Logger logger = LoggerFactory.getLogger(GameEngine.class);
     private final List<Player> players = new ArrayList<>();
     private final GameState gameState;
-    private final GameEventProducer gameEventProducer;
-
-
 
     private void initPlayers(PlayersPair playersPair) {
         this.players.add(playersPair.player1());
@@ -79,11 +75,11 @@ public class GameEngine {
 
     private GameResult result(Player player1, Player player2) {
         if (gameState.hasWon(player1.getPlayerSymbol())) {
-           return GameResult.player1Winner(player1,player2);
+            return GameResult.player1Winner(player1, player2);
         } else if (gameState.hasWon(player2.getPlayerSymbol())) {
-            return GameResult.player2Winner(player1,player2);
+            return GameResult.player2Winner(player1, player2);
         } else {
-            return GameResult.drawResult(player1,player2);
+            return GameResult.drawResult(player1, player2);
         }
     }
 
