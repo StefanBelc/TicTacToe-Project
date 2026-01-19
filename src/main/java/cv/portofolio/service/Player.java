@@ -2,9 +2,13 @@ package cv.portofolio.service;
 
 import java.util.List;
 
+import lombok.Getter;
+import lombok.ToString;
+
+@Getter
 public class Player {
 
-    private final DecisionMaker decisionMaker = new DecisionMaker();
+    private final DecisionMaker decisionMaker;
 
     private final String name;
     private final int id;
@@ -14,64 +18,55 @@ public class Player {
     private int drawCount;
     private int playerSymbol;
 
-    public void resetCounts() {
-        winningCount = 0;
-        loseCount = 0;
-        drawCount = 0;
-    }
-
-
-    public void incrementLoseCount() {
-        this.loseCount++;
-    }
-
-    public void incrementDrawCount() {
-        this.drawCount++;
-    }
-
-    public void incrementWinningCount() {
-        this.winningCount++;
-    }
-
-
     public Player(String name, int playerId) {
+        this(name, playerId, new DecisionMaker());
+    }
+
+    Player(String name, int playerId, DecisionMaker decisionMaker) {
         this.name = name;
         this.id = playerId;
+        this.decisionMaker = decisionMaker;
     }
 
     public int pickPosition(List<Integer> freePositions) {
         return lastPosition = decisionMaker.pickPosition(freePositions);
     }
 
+    //TODO this is very bad...code smell, try to not use mutable data
     public int assignPlayerSymbol(int currentSymbol) {
         return playerSymbol = currentSymbol + 1;
     }
 
-    public String getName() {
-        return this.name;
+    public void incrementLoseCount() {
+        loseCount++;
     }
 
-    public int getId() {
-        return this.id;
+    public void incrementDrawCount() {
+        drawCount++;
     }
 
-    public int getLastPosition() {
-        return this.lastPosition;
+    public void incrementWinningCount() {
+        winningCount++;
     }
 
     public int getPlayerSymbol() {
-        return this.playerSymbol;
+        return playerSymbol;
     }
 
     public int getWinningCount() {
-        return this.winningCount;
+        return winningCount;
     }
 
     public int getLoseCount() {
-        return this.loseCount;
+        return loseCount;
     }
 
     public int getDrawCount() {
-        return this.drawCount;
+        return drawCount;
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 }

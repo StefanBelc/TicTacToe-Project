@@ -104,4 +104,8 @@ public class GameState {
         }
     }
 
+    public boolean isDraw() {
+        return availablePositions().isEmpty();
+    }
+
 }

@@ -18,8 +18,9 @@ public class Tournament {
     private int totalMatches;
     private List<GameResult> resultsList = new ArrayList<>();
 
+    //TODO use injection, easier to test
     public Tournament() {
-        this.gameEngine = new GameEngine();
+        this.gameEngine = new GameEngine(new GameState());
         this.playerGenerator = new PlayerGenerator();
     }
 
