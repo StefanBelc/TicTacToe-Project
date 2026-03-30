@@ -4,11 +4,16 @@ import com.company.promobridge.GameEvent;
 import com.company.promobridge.GameEventProducer;
 import com.company.promobridge.GameStatus;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
+@Component
 public class GameEventPublisher {
 
-    private GameEventProducer gameEventProducer;
+    private final GameEventProducer gameEventProducer;
+    private final Logger logger = LoggerFactory.getLogger(GameEventPublisher.class);
 
     public GameEvent sendGameCreatedEvent(String gameId,
                                      String tournamentId,
@@ -29,6 +34,7 @@ public class GameEventPublisher {
                 .build();
 
         gameEventProducer.produceTournamentEvent(gameEvent);
+        logger.info("send game created event");
         return gameEvent;
 
     }
@@ -53,6 +59,7 @@ public class GameEventPublisher {
                 .build();
 
         gameEventProducer.produceTournamentEvent(gameEvent);
+        logger.info("send game started event");
         return gameEvent;
     }
 
@@ -79,6 +86,7 @@ public class GameEventPublisher {
                 .build();
 
         gameEventProducer.produceTournamentEvent(gameEvent);
+        logger.info("send game finished event");
         return gameEvent;
     }
 }

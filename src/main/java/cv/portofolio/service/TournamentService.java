@@ -42,6 +42,8 @@ public class TournamentService {
         List<PlayersPair> pairedPlayers = pairPlayers(generatedPlayers, ROUND_ROBIN);
         tournamentEventPublisher.sendTournamentStartedEvent(tournamentId, numberOfPlayers, totalMatches, gameEvents);
 
+        // TODO: FIX - gameResult.getWinner/getLoser - throw Exception. change to return null ?
+
         for (int i = 0; i < pairedPlayers.size(); i++) {
             String gameId = UUID.randomUUID().toString();
             gameEvents.add(gameEventPublisher.sendGameCreatedEvent(gameId, tournamentId, pairedPlayers.get(i).player1().getName(), pairedPlayers.get(i).player2().getName()));

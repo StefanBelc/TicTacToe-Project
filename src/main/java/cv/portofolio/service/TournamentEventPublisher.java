@@ -5,14 +5,19 @@ import com.company.promobridge.TournamentEvent;
 import com.company.promobridge.TournamentEventProducer;
 import com.company.promobridge.TournamentStatus;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
+@Component
 public class TournamentEventPublisher {
 
     private final TournamentEventProducer tournamentEventProducer;
+    private final Logger logger = LoggerFactory.getLogger(TournamentEventPublisher.class);
 
 
     public void sendTournamentCreatedEvent(String tournamentId) {
@@ -29,6 +34,7 @@ public class TournamentEventPublisher {
                 .build();
 
         tournamentEventProducer.produceTournamentEvent(tournamentEvent);
+        logger.info("sent tournament created event");
     }
 
 
@@ -49,6 +55,7 @@ public class TournamentEventPublisher {
                 .build();
 
         tournamentEventProducer.produceTournamentEvent(tournamentEvent);
+        logger.info("sent tournament started event");
     }
 
 
@@ -69,5 +76,6 @@ public class TournamentEventPublisher {
                 .build();
 
         tournamentEventProducer.produceTournamentEvent(tournamentEvent);
+        logger.info("sent tournament finished event");
     }
 }
