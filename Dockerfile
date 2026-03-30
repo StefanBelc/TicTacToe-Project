@@ -1,9 +1,17 @@
-FROM ubuntu:latest
-LABEL authors="Stefan&Elena"
+FROM maven:3.9-amazoncorretto-20 AS build
+WORKDIR /build
 
-ENTRYPOINT ["top", "-b"]
+COPY pom.xml .
+RUN mvn dependency:go-offline
 
-FROM eclipse-temurin:25-jdk-alpine
+COPY src ./src
+RUN mvn clean package -DskipTests
+
+FROM amazoncorretto:21-alpine
 WORKDIR /app
-COPY target/*.jar app.jar
+
+COPY --from=build /build/target/*.jar app.jar
+
+EXPOSE 8080
+
 ENTRYPOINT ["java", "-jar", "app.jar"]
