@@ -59,9 +59,8 @@ public record GameResult(Player player1,
             return player1;
         } else if (player2Won) {
             return player2;
-        } else {
-            throw new IllegalStateException("Game result is draw. There is no winner");
         }
+        return null;
     }
 
     public Player getLoser() {
@@ -69,8 +68,7 @@ public record GameResult(Player player1,
             return player2;
         } else if (player2Won) {
             return player1;
-        } else {
-            throw new IllegalStateException("Game result is draw. There is no loser");
         }
+        return null;
     }
 }
