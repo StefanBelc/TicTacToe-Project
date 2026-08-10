@@ -1,12 +1,20 @@
 package cv.portofolio.service;
 
-import com.company.promobridge.*;
+import com.company.promobridge.GameEvent;
+import com.company.promobridge.GameStatus;
+import com.company.promobridge.TournamentStatus;
+import cv.portofolio.service.persistence.GamePersistenceService;
+import cv.portofolio.service.persistence.TournamentPersistenceService;
+import cv.portofolio.service.persistence.entity.GameEntity;
+import cv.portofolio.service.persistence.entity.TournamentEntity;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static cv.portofolio.service.TournamentFormat.ROUND_ROBIN;
 import static cv.portofolio.service.TournamentFormat.SINGLE_ELIMINATION;
@@ -18,42 +26,50 @@ public class TournamentService {
     private final GameEngine gameEngine;
     private final PlayerGenerator playerGenerator;
 
-    private int totalMatches;
+    private final AtomicInteger totalMatches = new AtomicInteger(0);
     private final List<GameResult> resultsList;
     private final List<GameEvent> gameEvents;
     private final TournamentEventPublisher tournamentEventPublisher;
     private final GameEventPublisher gameEventPublisher;
+    private final GamePersistenceService gamePersistenceService;
+    private final TournamentPersistenceService tournamentPersistenceService;
+    private final DurationStopWatch tournamentStopWatch;
+    private final AtomicInteger averageMatchDuration = new AtomicInteger(0);
 
 
     public TournamentResult startTournament(int numberOfPlayers) {
+        tournamentStopWatch.reset();
         String tournamentId = UUID.randomUUID().toString();
         if (numberOfPlayers % 2 == 0) {
+            tournamentStopWatch.start();
             return singleEliminationFormat(numberOfPlayers, tournamentId);
         } else {
+            tournamentStopWatch.start();
             return roundRobinFormat(numberOfPlayers, tournamentId);
         }
     }
 
     private TournamentResult roundRobinFormat(int numberOfPlayers, String tournamentId) {
-        totalMatches = 0;
+        totalMatches.incrementAndGet();
         tournamentEventPublisher.sendTournamentCreatedEvent(tournamentId);
         int tournamentRounds = 0;
         GameResult gameResult;
         List<Player> generatedPlayers = playerGenerator.generatePlayers(numberOfPlayers);
         List<PlayersPair> pairedPlayers = pairPlayers(generatedPlayers, ROUND_ROBIN);
-        tournamentEventPublisher.sendTournamentStartedEvent(tournamentId, numberOfPlayers, totalMatches, gameEvents);
+        tournamentEventPublisher.sendTournamentStartedEvent(tournamentId, numberOfPlayers, totalMatches.get(), gameEvents);
 
 
         for (int i = 0; i < pairedPlayers.size(); i++) {
             String gameId = UUID.randomUUID().toString();
             gameEvents.add(gameEventPublisher.sendGameCreatedEvent(gameId, tournamentId, pairedPlayers.get(i).player1().getName(), pairedPlayers.get(i).player2().getName()));
-
             logger.info("{} is playing against {}", pairedPlayers.get(i).player1().getName(),
                     pairedPlayers.get(i).player2().getName());
             gameEvents.add(gameEventPublisher.sendGameStartedEvent(gameId, tournamentId, pairedPlayers.get(i).player1().getName(), pairedPlayers.get(i).player2().getName()));
             gameResult = gameEngine.startGame(pairedPlayers.get(i));
+            gamePersistenceService.persistGameSnapshot(buildGameSnapshot(tournamentId, gameId, pairedPlayers, i, gameResult));
             gameEvents.add(sendGameFinishedEvent(gameId, tournamentId, gameResult));
-            totalMatches++;
+            averageMatchDuration.addAndGet((int) gameResult.matchDuration());
+            totalMatches.incrementAndGet();
             resultsList.add(gameResult);
 
             if (gameResult.isDraw()) {
@@ -61,19 +77,73 @@ public class TournamentService {
                 gameEvents.add(gameEventPublisher.sendGameCreatedEvent(gameId, tournamentId, pairedPlayers.get(i).player1().getName(), pairedPlayers.get(i).player2().getName()));
                 gameEvents.add(gameEventPublisher.sendGameStartedEvent(gameId, tournamentId, pairedPlayers.get(i).player1().getName(), pairedPlayers.get(i).player2().getName()));
                 gameResult = gameEngine.startGame(pairedPlayers.get(i));
+                gamePersistenceService.persistGameSnapshot(buildGameSnapshot(tournamentId, gameId, pairedPlayers, i, gameResult));
                 gameEvents.add(sendGameFinishedEvent(gameId, tournamentId, gameResult));
-                totalMatches++;
+                averageMatchDuration.addAndGet((int) gameResult.matchDuration());
+                totalMatches.incrementAndGet();
                 resultsList.add(gameResult);
             }
             tournamentRounds++;
         }
-        tournamentEventPublisher.sendTournamentFinishedEvent(tournamentId, numberOfPlayers, totalMatches, gameEvents);
+        tournamentStopWatch.stop();
+        tournamentPersistenceService.persistTournamentSnapshot(buildTournamentSnapshot(numberOfPlayers, tournamentId));
+        tournamentEventPublisher.sendTournamentFinishedEvent(tournamentId, numberOfPlayers, totalMatches.get(), gameEvents);
         return tournamentResult(resultsList, numberOfPlayers, tournamentRounds, ROUND_ROBIN, tournamentId);
+    }
+
+    private TournamentEntity buildTournamentSnapshot(int numberOfPlayers, String tournamentId) {
+        return TournamentEntity.builder()
+                .tournamentId(tournamentId)
+                .tournamentStatus(String.valueOf(TournamentStatus.FINISHED))
+                .totalMatches(totalMatches.get())
+                .totalPlayers(numberOfPlayers)
+                .totalDuration(tournamentStopWatch.getDuration())
+                .averageMatchDuration(getAvgMatchDuration())
+                .updatedAt(LocalDateTime.now())
+                .build();
+    }
+
+    private long getAvgMatchDuration() {
+        long matches = totalMatches.get();
+        if (matches == 0) {
+            return 0;
+        }
+
+        return tournamentStopWatch.getDuration() / matches;
+    }
+
+    private GameEntity buildGameSnapshot(String tournamentId, String gameId, List<PlayersPair> pairedPlayers, int currentPairIndex, GameResult gameResult) {
+        if (!gameResult.isDraw()) {
+            return GameEntity.builder()
+                    .gameId(gameId)
+                    .tournamentId(tournamentId)
+                    .gameStatus(String.valueOf(GameStatus.FINISHED))
+                    .player1(pairedPlayers.get(currentPairIndex).player1().getName())
+                    .player2(pairedPlayers.get(currentPairIndex).player2().getName())
+                    .winner(gameResult.getWinner().getName())
+                    .loser(gameResult.getLoser().getName())
+                    .isDraw(false)
+                    .duration(gameResult.matchDuration())
+                    .build();
+        } else {
+            return GameEntity.builder()
+                    .gameId(gameId)
+                    .tournamentId(tournamentId)
+                    .gameStatus(String.valueOf(GameStatus.FINISHED))
+                    .player1(pairedPlayers.get(currentPairIndex).player1().getName())
+                    .player2(pairedPlayers.get(currentPairIndex).player2().getName())
+                    .winner(null)
+                    .loser(null)
+                    .isDraw(true)
+                    .duration(gameResult.matchDuration())
+                    .build();
+
+        }
     }
 
 
     private TournamentResult singleEliminationFormat(int numberOfPlayers, String tournamentId) {
-        totalMatches = 0;
+        totalMatches.set(0);
         tournamentEventPublisher.sendTournamentCreatedEvent(tournamentId);
 
         List<Player> generatedPlayers = playerGenerator.generatePlayers(numberOfPlayers);
@@ -82,7 +152,7 @@ public class TournamentService {
         GameResult gameResult;
         List<PlayersPair> pairedPlayers = pairPlayers(generatedPlayers, SINGLE_ELIMINATION);
         List<Player> winners = new ArrayList<>();
-        tournamentEventPublisher.sendTournamentStartedEvent(tournamentId, numberOfPlayers, totalMatches, gameEvents);
+        tournamentEventPublisher.sendTournamentStartedEvent(tournamentId, numberOfPlayers, totalMatches.get(), gameEvents);
 
         while (isPlaying) {
             for (int i = 0; i < pairedPlayers.size(); i++) {
@@ -100,19 +170,25 @@ public class TournamentService {
                             pairedPlayers.get(i).player2().getName());
                     gameEvents.add(gameEventPublisher.sendGameStartedEvent(gameId, tournamentId, pairedPlayers.get(i).player1().getName(), pairedPlayers.get(i).player2().getName()));
                     gameResult = gameEngine.startGame(pairedPlayers.get(i));
+                    gamePersistenceService.persistGameSnapshot(buildGameSnapshot(tournamentId, gameId, pairedPlayers, i, gameResult));
                     gameEvents.add(sendGameFinishedEvent(gameId, tournamentId, gameResult));
-                    totalMatches++;
+
+                    averageMatchDuration.addAndGet((int) gameResult.matchDuration());
+                    totalMatches.incrementAndGet();
                     resultsList.add(gameResult);
+
                     while (gameResult.isDraw()) {
                         gameId = UUID.randomUUID().toString();
                         gameEvents.add(gameEventPublisher.sendGameCreatedEvent(gameId, tournamentId, pairedPlayers.get(i).player1().getName(), pairedPlayers.get(i).player2().getName()));
                         gameEvents.add(gameEventPublisher.sendGameStartedEvent(gameId, tournamentId, pairedPlayers.get(i).player1().getName(), pairedPlayers.get(i).player2().getName()));
 
                         gameResult = gameEngine.startGame(pairedPlayers.get(i));
+                        gamePersistenceService.persistGameSnapshot(buildGameSnapshot(tournamentId, gameId, pairedPlayers, i, gameResult));
                         gameEvents.add(sendGameFinishedEvent(gameId, tournamentId, gameResult));
 
+                        averageMatchDuration.addAndGet((int) gameResult.matchDuration());
                         resultsList.add(gameResult);
-                        totalMatches++;
+                        totalMatches.incrementAndGet();
                     }
                     winners.add(gameResult.getWinner());
                 }
@@ -128,8 +204,10 @@ public class TournamentService {
             winners.clear();
 
         }
-        logger.info("Total Matches played: {}", totalMatches);
-        tournamentEventPublisher.sendTournamentFinishedEvent(tournamentId, numberOfPlayers, totalMatches, gameEvents);
+        tournamentStopWatch.stop();
+        tournamentPersistenceService.persistTournamentSnapshot(buildTournamentSnapshot(numberOfPlayers, tournamentId));
+        logger.info("Total Matches played: {}", totalMatches.get());
+        tournamentEventPublisher.sendTournamentFinishedEvent(tournamentId, numberOfPlayers, totalMatches.get(), gameEvents);
         return tournamentResult(resultsList, numberOfPlayers, tournamentRounds, SINGLE_ELIMINATION, tournamentId);
     }
 
