@@ -11,9 +11,11 @@ import java.util.List;
 @RequiredArgsConstructor
 @Service
 public class GameEngine {
+
     private static final Logger logger = LoggerFactory.getLogger(GameEngine.class);
     private final List<Player> players = new ArrayList<>();
     private final GameState gameState;
+    private final DurationStopWatch stopWatch;
 
     private void initPlayers(PlayersPair playersPair) {
         this.players.add(playersPair.player1());
@@ -35,10 +37,12 @@ public class GameEngine {
     }
 
     public GameResult startGame(PlayersPair playersPair) {
+        stopWatch.reset();
         players.clear();
         logger.info("player list cleared!");
         gameState.init();
         logger.info("grid has been reset!");
+        stopWatch.start();
         initPlayers(playersPair);
         int currentPlayerIndex = 0;
         Player currentPlayer = players.get(currentPlayerIndex);
@@ -67,19 +71,19 @@ public class GameEngine {
             currentPlayer.assignPlayerSymbol(currentPlayerIndex);
 
         }
-
-        GameResult finalGameResult = result(players.get(0), players.get(1));
+        stopWatch.stop();
+        GameResult finalGameResult = result(players.get(0), players.get(1), stopWatch.getDuration());
         logger.info(String.valueOf(finalGameResult));
         return finalGameResult;
     }
 
-    private GameResult result(Player player1, Player player2) {
+    private GameResult result(Player player1, Player player2, long matchDuration) {
         if (gameState.hasWon(player1.getPlayerSymbol())) {
-            return GameResult.player1Winner(player1, player2);
+            return GameResult.player1Winner(player1, player2, matchDuration);
         } else if (gameState.hasWon(player2.getPlayerSymbol())) {
-            return GameResult.player2Winner(player1, player2);
+            return GameResult.player2Winner(player1, player2, matchDuration);
         } else {
-            return GameResult.drawResult(player1, player2);
+            return GameResult.drawResult(player1, player2, matchDuration);
         }
     }
 
