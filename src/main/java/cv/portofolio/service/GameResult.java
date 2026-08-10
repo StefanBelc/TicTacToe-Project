@@ -8,14 +8,15 @@ public record GameResult(Player player1,
                          Player player2,
                          boolean isDraw,
                          boolean player1Won,
-                         boolean player2Won) {
+                         boolean player2Won,
+                         long matchDuration) {
 
 
     public boolean isDraw() {
         return this.isDraw;
     }
 
-    public static GameResult player1Winner(Player player1, Player player2) {
+    public static GameResult player1Winner(Player player1, Player player2, long duration) {
         player1.incrementWinningCount();
         player2.incrementLoseCount();
 
@@ -25,10 +26,11 @@ public record GameResult(Player player1,
                 .isDraw(false)
                 .player1Won(true)
                 .player2Won(false)
+                .matchDuration(duration)
                 .build();
     }
 
-    public static GameResult player2Winner(Player player1, Player player2) {
+    public static GameResult player2Winner(Player player1, Player player2, long duration) {
         player1.incrementLoseCount();
         player2.incrementWinningCount();
 
@@ -38,10 +40,11 @@ public record GameResult(Player player1,
                 .isDraw(false)
                 .player1Won(false)
                 .player2Won(true)
+                .matchDuration(duration)
                 .build();
     }
 
-    public static GameResult drawResult(Player player1, Player player2) {
+    public static GameResult drawResult(Player player1, Player player2, long duration) {
         player1.incrementDrawCount();
         player2.incrementDrawCount();
 
@@ -51,6 +54,7 @@ public record GameResult(Player player1,
                 .isDraw(true)
                 .player1Won(false)
                 .player2Won(false)
+                .matchDuration(duration)
                 .build();
     }
 
