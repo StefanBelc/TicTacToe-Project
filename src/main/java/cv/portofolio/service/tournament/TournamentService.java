@@ -48,6 +48,9 @@ public class TournamentService {
 
     public TournamentResult startTournament(int numberOfPlayers) {
         tournamentStopWatch.reset();
+        gameEvents.clear();
+        resultsList.clear();
+        totalMatches.set(0);
         String tournamentId = UUID.randomUUID().toString();
         if (numberOfPlayers % 2 == 0) {
             tournamentStopWatch.start();
@@ -60,6 +63,7 @@ public class TournamentService {
 
     private TournamentResult roundRobinFormat(int numberOfPlayers, String tournamentId) {
         totalMatches.incrementAndGet();
+        tournamentPersistenceService.persistTournamentStartedSnapshot(tournamentId, numberOfPlayers);
         tournamentEventPublisher.sendTournamentCreatedEvent(tournamentId);
         int tournamentRounds = 0;
         GameResult gameResult;
@@ -95,7 +99,7 @@ public class TournamentService {
             tournamentRounds++;
         }
         tournamentStopWatch.stop();
-        tournamentPersistenceService.persistTournamentSnapshot(buildTournamentSnapshot(numberOfPlayers, tournamentId));
+        tournamentPersistenceService.persistTournamentFinishedSnapshot(buildTournamentSnapshot(numberOfPlayers, tournamentId));
         tournamentEventPublisher.sendTournamentFinishedEvent(tournamentId, numberOfPlayers, totalMatches.get(), gameEvents);
         return tournamentResult(resultsList, numberOfPlayers, tournamentRounds, ROUND_ROBIN, tournamentId);
     }
@@ -153,6 +157,7 @@ public class TournamentService {
 
     private TournamentResult singleEliminationFormat(int numberOfPlayers, String tournamentId) {
         totalMatches.set(0);
+        tournamentPersistenceService.persistTournamentStartedSnapshot(tournamentId, numberOfPlayers);
         tournamentEventPublisher.sendTournamentCreatedEvent(tournamentId);
 
         List<Player> generatedPlayers = playerGenerator.generatePlayers(numberOfPlayers);
@@ -214,7 +219,7 @@ public class TournamentService {
 
         }
         tournamentStopWatch.stop();
-        tournamentPersistenceService.persistTournamentSnapshot(buildTournamentSnapshot(numberOfPlayers, tournamentId));
+        tournamentPersistenceService.persistTournamentFinishedSnapshot(buildTournamentSnapshot(numberOfPlayers, tournamentId));
         logger.info("Total Matches played: {}", totalMatches.get());
         tournamentEventPublisher.sendTournamentFinishedEvent(tournamentId, numberOfPlayers, totalMatches.get(), gameEvents);
         return tournamentResult(resultsList, numberOfPlayers, tournamentRounds, SINGLE_ELIMINATION, tournamentId);
@@ -331,5 +336,59 @@ public class TournamentService {
         } else {
             throw new IllegalArgumentException("Invalid Tournament Format");
         }
+    }
+
+    public void recoverActiveTournaments() {
+        List<TournamentEntity> activeTournaments = tournamentPersistenceService.findActiveTournaments();
+        if (activeTournaments.isEmpty()) {
+            logger.info("No active tournaments found for recovery.");
+            return;
+        }
+
+        for (TournamentEntity active : activeTournaments) {
+            logger.info("Recovering active tournament {} with {} total players", active.getTournamentId(), active.getTotalPlayers());
+            gameEvents.clear();
+            resultsList.clear();
+            List<GameEntity> savedGames = gamePersistenceService.getGamesForTournament(active.getTournamentId());
+            logger.info("Found {} completed games in database for active tournament {}", savedGames.size(), active.getTournamentId());
+
+            for (GameEntity savedGame : savedGames) {
+                gameEventPublisher.sendGameFinishedEvent(
+                        savedGame.getGameId(),
+                        savedGame.getTournamentId(),
+                        savedGame.getPlayer1(),
+                        savedGame.getPlayer2(),
+                        savedGame.getWinner(),
+                        savedGame.getLoser(),
+                        Boolean.TRUE.equals(savedGame.getIsDraw())
+                );
+            }
+
+            int numberOfPlayers = active.getTotalPlayers();
+            if (numberOfPlayers % 2 == 0) {
+                singleEliminationFormat(numberOfPlayers, active.getTournamentId());
+            } else {
+                roundRobinFormat(numberOfPlayers, active.getTournamentId());
+            }
+        }
+    }
+
+    public Map<String, Object> getActiveTournamentState() {
+        Optional<TournamentEntity> latestOpt = tournamentPersistenceService.findLatestTournament();
+        if (latestOpt.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        TournamentEntity tournament = latestOpt.get();
+        List<GameEntity> games = gamePersistenceService.getGamesForTournament(tournament.getTournamentId());
+
+        Map<String, Object> state = new HashMap<>();
+        state.put("tournamentId", tournament.getTournamentId());
+        state.put("status", tournament.getTournamentStatus());
+        state.put("totalPlayers", tournament.getTotalPlayers());
+        state.put("totalMatches", games.size());
+        state.put("games", games);
+
+        return state;
     }
 }

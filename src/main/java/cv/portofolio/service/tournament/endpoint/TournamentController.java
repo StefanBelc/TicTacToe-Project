@@ -7,10 +7,13 @@ import jakarta.validation.constraints.Min;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
 
 @CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 @RestController
@@ -29,5 +32,11 @@ public class TournamentController {
         logger.info("Start tournament with {} players", numberOfPlayers);
         // min numberOfPlayers = 3; min rounds = 1;
        return tournamentService.startTournament(numberOfPlayers);
+    }
+
+    @GetMapping("/active")
+    public Map<String, Object> getActiveTournament() {
+        logger.info("Fetching active tournament state for recovery");
+        return tournamentService.getActiveTournamentState();
     }
 }

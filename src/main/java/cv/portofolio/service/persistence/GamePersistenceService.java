@@ -36,4 +36,8 @@ public class GamePersistenceService {
         gameRepository.save(gameEntity);
         log.info("Game snapshot saved successfully to database at {} with tournamentId {}", Instant.now(), currentGameEntity.getTournamentId());
     }
+
+    public java.util.List<GameEntity> getGamesForTournament(String tournamentId) {
+        return gameRepository.findByTournamentId(tournamentId);
+    }
 }
