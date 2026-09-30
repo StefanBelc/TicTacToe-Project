@@ -67,7 +67,7 @@ class TournamentServiceTest {
     }
 
     @Test
-    void oddNumberOfPlayersPlaysRoundRobin() {
+    void should_play_round_robin_when_number_of_players_is_odd() {
         TournamentResult result = tournamentService.startTournament(3);
 
         assertThat(result.totalPlayers()).isEqualTo(3);
@@ -86,7 +86,7 @@ class TournamentServiceTest {
     }
 
     @Test
-    void evenNumberOfPlayersPlaysSingleEliminationAndPersistsFinishedSnapshot() {
+    void should_play_single_elimination_and_persist_finished_snapshot_when_number_of_players_is_even() {
         TournamentResult result = tournamentService.startTournament(4);
 
         assertThat(result.totalPlayers()).isEqualTo(4);
@@ -110,7 +110,7 @@ class TournamentServiceTest {
     }
 
     @Test
-    void recoveryDoesNothingWhenNoTournamentIsActive() {
+    void should_do_nothing_when_recovering_and_no_tournament_is_active() {
         when(tournamentPersistenceService.findActiveTournaments()).thenReturn(List.of());
 
         tournamentService.recoverActiveTournaments();
@@ -119,14 +119,14 @@ class TournamentServiceTest {
     }
 
     @Test
-    void activeTournamentStateIsEmptyWhenNothingWasPlayed() {
+    void should_return_empty_state_when_no_tournament_was_played() {
         when(tournamentPersistenceService.findLatestTournament()).thenReturn(Optional.empty());
 
         assertThat(tournamentService.getActiveTournamentState()).isEmpty();
     }
 
     @Test
-    void activeTournamentStateSummarisesTheLatestTournament() {
+    void should_summarise_latest_tournament_when_active_state_is_requested() {
         TournamentEntity latest = TournamentEntity.builder()
                 .tournamentId("t-1")
                 .tournamentStatus("FINISHED")

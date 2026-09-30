@@ -9,7 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class PlayerTest {
 
     @Test
-    void generatorCreatesNumberedPlayers() {
+    void should_create_numbered_players_when_generating_players() {
         List<Player> players = new PlayerGenerator().generatePlayers(4);
 
         assertThat(players).extracting(Player::getName)
@@ -18,7 +18,7 @@ class PlayerTest {
     }
 
     @Test
-    void pickPositionChoosesAFreePositionAndRemembersIt() {
+    void should_pick_free_position_and_remember_it_when_player_moves() {
         Player player = new Player("Alice", 1);
         List<Integer> free = List.of(2, 5, 7);
 
@@ -30,7 +30,7 @@ class PlayerTest {
     }
 
     @Test
-    void assignPlayerSymbolIsIndexPlusOne() {
+    void should_assign_symbol_as_index_plus_one_when_symbol_is_assigned() {
         Player player = new Player("Alice", 1);
 
         assertThat(player.assignPlayerSymbol(0)).isEqualTo(1);
@@ -39,7 +39,7 @@ class PlayerTest {
     }
 
     @Test
-    void resetCountsZeroesAllCounters() {
+    void should_zero_all_counters_when_counts_are_reset() {
         Player player = new Player("Alice", 1);
         player.incrementWinningCount();
         player.incrementLoseCount();

@@ -7,7 +7,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class DurationStopWatchTest {
 
     @Test
-    void measuresElapsedTimeBetweenStartAndStop() throws InterruptedException {
+    void should_measure_elapsed_time_when_started_and_stopped() throws InterruptedException {
         DurationStopWatch stopWatch = new DurationStopWatch();
 
         stopWatch.start();
@@ -18,7 +18,7 @@ class DurationStopWatchTest {
     }
 
     @Test
-    void stopIsIdempotentSoDurationDoesNotGrowAfterStop() throws InterruptedException {
+    void should_keep_same_duration_when_stopped_twice() throws InterruptedException {
         DurationStopWatch stopWatch = new DurationStopWatch();
         stopWatch.start();
         stopWatch.stop();
@@ -31,7 +31,7 @@ class DurationStopWatchTest {
     }
 
     @Test
-    void resetAllowsTheWatchToBeReused() throws InterruptedException {
+    void should_allow_reuse_when_reset() throws InterruptedException {
         DurationStopWatch stopWatch = new DurationStopWatch();
         stopWatch.start();
         Thread.sleep(40);

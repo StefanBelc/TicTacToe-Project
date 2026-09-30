@@ -66,7 +66,7 @@ class TournamentApiIntegrationTest {
     private GameRepository gameRepository;
 
     @Test
-    void startingATournamentReturnsAPodiumAndPersistsEveryGame() {
+    void should_return_podium_and_persist_every_game_when_tournament_is_started() {
         ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
                 "/tournament/start/5", HttpMethod.POST, null, new ParameterizedTypeReference<>() {});
 
@@ -85,14 +85,14 @@ class TournamentApiIntegrationTest {
     }
 
     @Test
-    void fewerThanThreePlayersIsRejectedWithBadRequest() {
+    void should_return_400_when_fewer_than_three_players() {
         ResponseEntity<String> response = restTemplate.postForEntity("/tournament/start/2", null, String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
-    void finishedTournamentEventIsPublishedToKafka() {
+    void should_publish_tournament_events_to_kafka_when_tournament_finishes() {
         ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
                 "/tournament/start/4", HttpMethod.POST, null, new ParameterizedTypeReference<>() {});
         String tournamentId = (String) response.getBody().get("tournamentId");

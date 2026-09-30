@@ -18,7 +18,7 @@ class GameResultTest {
     }
 
     @Test
-    void player1WinnerUpdatesCountsAndExposesWinnerAndLoser() {
+    void should_update_counts_and_expose_winner_and_loser_when_player1_wins() {
         GameResult result = GameResult.player1Winner(alice, bob, 120);
 
         assertThat(result.isDraw()).isFalse();
@@ -30,7 +30,7 @@ class GameResultTest {
     }
 
     @Test
-    void player2WinnerUpdatesCountsAndExposesWinnerAndLoser() {
+    void should_update_counts_and_expose_winner_and_loser_when_player2_wins() {
         GameResult result = GameResult.player2Winner(alice, bob, 80);
 
         assertThat(result.getWinner()).isSameAs(bob);
@@ -40,7 +40,7 @@ class GameResultTest {
     }
 
     @Test
-    void drawHasNoWinnerOrLoserAndCountsADrawForBoth() {
+    void should_have_no_winner_and_count_draw_for_both_when_game_is_drawn() {
         GameResult result = GameResult.drawResult(alice, bob, 50);
 
         assertThat(result.isDraw()).isTrue();
