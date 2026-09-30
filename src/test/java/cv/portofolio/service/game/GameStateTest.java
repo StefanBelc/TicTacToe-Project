@@ -1,7 +1,6 @@
 package cv.portofolio.service.game;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -21,22 +20,20 @@ class GameStateTest {
     }
 
     @Test
-    @DisplayName("a fresh board has all nine positions free and no winner")
-    void freshBoard() {
+    void should_have_all_positions_free_and_no_winner_when_board_is_new() {
         assertThat(gameState.availablePositions()).containsExactly(0, 1, 2, 3, 4, 5, 6, 7, 8);
         assertThat(gameState.hasWon(PLAYER_ONE)).isFalse();
         assertThat(gameState.hasWon(PLAYER_TWO)).isFalse();
         assertThat(gameState.isDraw(PLAYER_ONE)).isFalse();
     }
 
-    @ParameterizedTest(name = "positions {0},{1},{2} win")
+    @ParameterizedTest(name = "should_win_with_positions_{0}_{1}_{2}")
     @CsvSource({
             "0,1,2", "3,4,5", "6,7,8",   // rows
             "0,3,6", "1,4,7", "2,5,8",   // columns
             "0,4,8", "2,4,6"             // diagonals
     })
-    @DisplayName("three in a line is a win for that player only")
-    void winningLines(int a, int b, int c) {
+    void should_declare_win_only_for_that_player_when_three_in_a_line(int a, int b, int c) {
         gameState.move(a, PLAYER_ONE);
         gameState.move(b, PLAYER_ONE);
         gameState.move(c, PLAYER_ONE);
@@ -47,8 +44,7 @@ class GameStateTest {
     }
 
     @Test
-    @DisplayName("two in a line is not a win")
-    void twoInALineIsNotAWin() {
+    void should_not_declare_win_when_only_two_in_a_line() {
         gameState.move(0, PLAYER_ONE);
         gameState.move(1, PLAYER_ONE);
         gameState.move(2, PLAYER_TWO);
@@ -57,8 +53,7 @@ class GameStateTest {
     }
 
     @Test
-    @DisplayName("a full board with no line is a draw")
-    void fullBoardWithoutWinnerIsDraw() {
+    void should_declare_draw_when_board_is_full_without_a_line() {
         // 1 2 1
         // 1 2 2
         // 2 1 1
@@ -75,8 +70,7 @@ class GameStateTest {
     }
 
     @Test
-    @DisplayName("taken positions are no longer available")
-    void takenPositionsAreRemoved() {
+    void should_remove_position_from_available_when_it_is_taken() {
         gameState.move(0, PLAYER_ONE);
         gameState.move(4, PLAYER_TWO);
 
@@ -86,8 +80,7 @@ class GameStateTest {
     }
 
     @Test
-    @DisplayName("init clears the board")
-    void initResetsBoard() {
+    void should_clear_board_when_init_is_called() {
         gameState.move(0, PLAYER_ONE);
         gameState.move(1, PLAYER_ONE);
         gameState.move(2, PLAYER_ONE);

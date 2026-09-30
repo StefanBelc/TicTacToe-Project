@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class GameEngineTest {
 
     @RepeatedTest(200)
-    void everyGameEndsWithExactlyOneConsistentOutcome() {
+    void should_end_with_exactly_one_consistent_outcome_when_game_is_played() {
         GameState gameState = new GameState();
         GameEngine engine = new GameEngine(gameState, new DurationStopWatch());
         Player player1 = new Player("Player 1", 1);
@@ -43,7 +43,7 @@ class GameEngineTest {
     }
 
     @RepeatedTest(20)
-    void playersGetDifferentSymbols() {
+    void should_assign_different_symbols_when_game_starts() {
         GameEngine engine = new GameEngine(new GameState(), new DurationStopWatch());
         Player player1 = new Player("Player 1", 1);
         Player player2 = new Player("Player 2", 2);

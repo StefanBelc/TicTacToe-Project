@@ -7,7 +7,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class GameGridTest {
 
     @Test
-    void updateGridPlacesSymbolAtFlatIndex() {
+    void should_place_symbol_at_flat_index_when_grid_is_updated() {
         GameGrid grid = new GameGrid();
 
         grid.updateGrid(2, 5); // row 1, column 2
@@ -17,7 +17,7 @@ class GameGridTest {
     }
 
     @Test
-    void resetGridClearsEveryCell() {
+    void should_clear_every_cell_when_grid_is_reset() {
         GameGrid grid = new GameGrid();
         grid.updateGrid(1, 0);
         grid.updateGrid(2, 8);
@@ -28,7 +28,7 @@ class GameGridTest {
     }
 
     @Test
-    void toStringPrintsThreeRows() {
+    void should_print_three_rows_when_converted_to_string() {
         GameGrid grid = new GameGrid();
         grid.updateGrid(1, 4);
 
